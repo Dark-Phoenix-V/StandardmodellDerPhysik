@@ -28,7 +28,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950 text-gray-100">
+    <div className="min-h-screen flex flex-col bg-gray-950 text-gray-100 relative">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-800">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -119,20 +119,6 @@ const App: React.FC = () => {
           <Quiz />
         </div>
       </main>
-
-      {/* Footer / Mobile Nav */}
-      <footer className="md:hidden sticky bottom-0 bg-gray-950 border-t border-gray-800 p-2 z-50">
-        <nav className="flex justify-around">
-           <button onClick={() => setCurrentView('model')} className={`p-2 rounded-xl flex flex-col items-center gap-1 ${currentView === 'model' ? 'text-blue-500' : 'text-gray-500'}`}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-            <span className="text-[10px]">Modell</span>
-          </button>
-          <button onClick={() => setCurrentView('quiz')} className={`p-2 rounded-xl flex flex-col items-center gap-1 ${currentView === 'quiz' ? 'text-blue-500' : 'text-gray-500'}`}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span className="text-[10px]">Quiz</span>
-          </button>
-        </nav>
-      </footer>
     </div>
   );
 };

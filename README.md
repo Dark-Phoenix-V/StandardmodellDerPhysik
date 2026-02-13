@@ -1,33 +1,23 @@
-<div align="center">
-<<<<<<< HEAD
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Standardmodell der Physik
 
-# Run and deploy your AI Studio app
+Eine interaktive Lern-Anwendung über die fundamentalen Bausteine des Universums.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/11JTvWX9XUEiUVqUbdnHPzN6nWafJmYbo
+- **Interaktives Teilchen-Gitter**: Erkunde Quarks, Leptonen und Bosonen.
+- **Detaillierte Informationen**: Klicke auf Teilchen, um Masse, Ladung, Spin und ihre Rolle im Universum zu sehen.
+- **Wissens-Quiz**: Teste dein gelerntes Wissen mit verschiedenen Fragetypen.
+- **Responsive Design**: Funktioniert auf Desktop und Mobile.
 
-## Run Locally
+## Technologien
 
-**Prerequisites:**  Node.js
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
 
+## Installation
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-=======
-
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-
-  <h1>Built with AI Studio</h2>
-
-  <p>The fastest path from prompt to production with Gemini.</p>
-
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
->>>>>>> e0af3e07ceb130de67386dba60abd9ef4338ce5a
+1. Repository klonen
+2. `npm install`
+3. `npm run dev`
