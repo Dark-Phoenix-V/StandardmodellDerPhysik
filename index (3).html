@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teilchen-Akademie</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM (React 18) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel (für JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            color: #f9fafb;
+        }
+        .font-mono {
+            font-family: 'JetBrains+Mono', monospace;
+        }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DATEN ---
+
+        const PARTICLES = [
+          // Quarks
+          { 
+            id: 'up', name: 'Up', symbol: 'u', type: 'quark', generation: 1, mass: '2.2 MeV/c²', charge: '+2/3', spin: '1/2', color: 'text-purple-400', 
+            description: 'Elementares Fermion der 1. Generation. Bildet zusammen mit dem Down-Quark das Isospin-Dublett der Nukleon-Bausteine.',
+            interaction: 'Starke WW (Farbe), Elektromagnetismus (+2/3 e), Schwache WW.',
+            role: 'Hauptvalenzquark in Protonen (uud) und Neutronen (udd); essentiell für stabile baryonische Materie.'
+          },
+          { 
+            id: 'down', name: 'Down', symbol: 'd', type: 'quark', generation: 1, mass: '4.7 MeV/c²', charge: '-1/3', spin: '1/2', color: 'text-purple-400', 
+            description: 'Elementares Fermion der 1. Generation. Es ist schwerer als das Up-Quark, was die Instabilität des freien Neutrons erklärt.',
+            interaction: 'Starke WW, Elektromagnetismus (-1/3 e), Schwache WW.',
+            role: 'Bestandteil der Atomkerne; ermöglicht via schwache Wechselwirkung den Beta-Minus-Zerfall.'
+          },
+          { 
+            id: 'charm', name: 'Charm', symbol: 'c', type: 'quark', generation: 2, mass: '1.28 GeV/c²', charge: '+2/3', spin: '1/2', color: 'text-purple-400', 
+            description: 'Quark der 2. Generation. Die Entdeckung bestätigte den GIM-Mechanismus und die Existenz der zweiten Generation.',
+            interaction: 'Starke WW, Elektromagnetismus, Schwache WW (bevorzugter Zerfall in Strange-Quarks).',
+            role: 'Bildet Charmonium-Zustände; wichtig für Präzisionstests der Quantenchromodynamik.'
+          },
+          { 
+            id: 'strange', name: 'Strange', symbol: 's', type: 'quark', generation: 2, mass: '96 MeV/c²', charge: '-1/3', spin: '1/2', color: 'text-purple-400', 
+            description: 'Quark der 2. Generation. Trägt die Quantenzahl Strangeness, die in starken Wechselwirkungen erhalten bleibt.',
+            interaction: 'Alle fundamentalen Wechselwirkungen; Zerfälle verletzen die Strangeness-Erhaltung.',
+            role: 'Bestandteil von Kaonen und Hyperonen; relevant für das Studium der CP-Verletzung.'
+          },
+          { 
+            id: 'top', name: 'Top', symbol: 't', type: 'quark', generation: 3, mass: '173 GeV/c²', charge: '+2/3', spin: '1/2', color: 'text-purple-400', 
+            description: 'Das massereichste bekannte Elementarteilchen. Zerfällt extrem schnell, bevor es Hadronen bilden kann.',
+            interaction: 'Starke WW, Elektromagnetismus, Schwache WW (fast ausschließlich Zerfall in W + Bottom).',
+            role: 'Besitzt die stärkste Kopplung an das Higgs-Feld; Fenster zu Physik jenseits des Standardmodells.'
+          },
+          { 
+            id: 'bottom', name: 'Bottom', symbol: 'b', type: 'quark', generation: 3, mass: '4.18 GeV/c²', charge: '-1/3', spin: '1/2', color: 'text-purple-400', 
+            description: 'Quark der 3. Generation. Bildet langlebige B-Mesonen aufgrund der geringen CKM-Mischung.',
+            interaction: 'Starke WW, Elektromagnetismus, Schwache WW.',
+            role: 'Zentral für B-Physik-Experimente zur Untersuchung der Materie-Antimaterie-Asymmetrie.'
+          },
+
+          // Leptonen
+          { 
+            id: 'electron', name: 'Elektron', symbol: 'e', type: 'lepton', generation: 1, mass: '0.511 MeV/c²', charge: '-1', spin: '1/2', color: 'text-green-400', 
+            description: 'Leichtestes geladenes Lepton. Stabil und punktförmig nach aktuellem Wissensstand.',
+            interaction: 'Elektromagnetismus (QED), Schwache Wechselwirkung.',
+            role: 'Träger der elektrischen Ladung in Atomen; bestimmt chemische Bindungen und Elektrizität.'
+          },
+          { 
+            id: 'electron-neutrino', name: 'Elektron-Neutrino', symbol: 'νe', type: 'lepton', generation: 1, mass: '< 1.1 eV/c²', charge: '0', spin: '1/2', color: 'text-green-400', 
+            description: 'Elektrisch neutrales Lepton. Tritt in Verbindung mit dem Elektron im schwachen Isospin-Dublett auf.',
+            interaction: 'Ausschließlich Schwache Wechselwirkung und Gravitation.',
+            role: 'Entscheidend für stellare Fusionsprozesse und die Leptonenzahlerhaltung beim Beta-Zerfall.'
+          },
+          { 
+            id: 'muon', name: 'Myon', symbol: 'μ', type: 'lepton', generation: 2, mass: '105.7 MeV/c²', charge: '-1', spin: '1/2', color: 'text-green-400', 
+            description: 'Instabile "schwere Kopie" des Elektrons (ca. 200-fache Masse).',
+            interaction: 'Elektromagnetismus, Schwache Wechselwirkung.',
+            role: 'Wichtigstes Teilchen der sekundären kosmischen Strahlung auf der Erdoberfläche.'
+          },
+          { 
+            id: 'muon-neutrino', name: 'Myon-Neutrino', symbol: 'νμ', type: 'lepton', generation: 2, mass: '< 0.17 MeV/c²', charge: '0', spin: '1/2', color: 'text-green-400', 
+            description: 'Partnerteilchen des Myons in der schwachen Wechselwirkung.',
+            interaction: 'Schwache Wechselwirkung.',
+            role: 'Ermöglichte den Nachweis der unterschiedlichen Lepton-Generationen.'
+          },
+          { 
+            id: 'tau', name: 'Tauon', symbol: 'τ', type: 'lepton', generation: 3, mass: '1.777 GeV/c²', charge: '-1', spin: '1/2', color: 'text-green-400', 
+            description: 'Schwerstes geladenes Lepton. Kann aufgrund seiner Masse auch in Hadronen zerfallen.',
+            interaction: 'Elektromagnetismus, Schwache Wechselwirkung.',
+            role: 'Ermöglicht Studien der Lepton-Universalität bei sehr hohen Massen.'
+          },
+          { 
+            id: 'tau-neutrino', name: 'Tauon-Neutrino', symbol: 'ντ', type: 'lepton', generation: 3, mass: '< 18.2 MeV/c²', charge: '0', spin: '1/2', color: 'text-green-400', 
+            description: 'Letztes entdecktes Materieteilchen der 3. Generation.',
+            interaction: 'Schwache Wechselwirkung.',
+            role: 'Vervollständigt das Drei-Generationen-Bild der Fermionen.'
+          },
+
+          // Eichbosonen
+          { 
+            id: 'gluon', name: 'Gluon', symbol: 'g', type: 'boson', mass: '0 MeV/c²', charge: '0', spin: '1', color: 'text-red-500', 
+            description: 'Masseloses Eichboson der Quantenchromodynamik (QCD). Trägt selbst Farbladung.',
+            interaction: 'Vermittelt die Starke Kernkraft; interagiert mit Quarks und anderen Gluonen.',
+            role: 'Bindet Quarks in Hadronen ein; verantwortlich für 99% der Masse sichtbarer Materie durch Bindungsenergie.'
+          },
+          { 
+            id: 'photon', name: 'Photon', symbol: 'γ', type: 'boson', mass: '0 MeV/c²', charge: '0', spin: '1', color: 'text-red-500', 
+            description: 'Quant des elektromagnetischen Feldes. Masselos und ohne elektrische Ladung.',
+            interaction: 'Vermittelt den Elektromagnetismus; koppelt an alle elektrisch geladenen Teilchen.',
+            role: 'Basis für Licht, elektromagnetische Strahlung und den Zusammenhalt von Atomen.'
+          },
+          { 
+            id: 'z-boson', name: 'Z-Boson', symbol: 'Z', type: 'boson', mass: '91.2 GeV/c²', charge: '0', spin: '1', color: 'text-red-500', 
+            description: 'Neutrales, massereiches Eichboson der elektroschwachen Wechselwirkung.',
+            interaction: 'Vermittelt neutrale schwache Ströme.',
+            role: 'Ermöglicht Energieaustausch durch die schwache Kraft ohne Ladungsänderung.'
+          },
+          { 
+            id: 'w-boson', name: 'W-Boson', symbol: 'W', type: 'boson', mass: '80.4 GeV/c²', charge: '±1', spin: '1', color: 'text-red-500', 
+            description: 'Geladenes, massereiches Eichboson der schwachen Wechselwirkung.',
+            interaction: 'Vermittelt geladene schwache Ströme; ändert den Flavor von Quarks und Leptonen.',
+            role: 'Ermöglicht Kernfusion in der Sonne und den Beta-Zerfall.'
+          },
+          { 
+            id: 'higgs', name: 'Higgs-Boson', symbol: 'H', type: 'higgs', mass: '125.1 GeV/c²', charge: '0', spin: '0', color: 'text-amber-400', 
+            description: 'Einziges Skalarboson (Spin 0). Anregung des allgegenwärtigen Higgs-Feldes.',
+            interaction: 'Koppelt an alle Teilchen mit Masse (Yukawa-Kopplung).',
+            role: 'Gibt Elementarteilchen ihre Masse durch spontane Symmetriebrechung im frühen Universum.'
+          },
+        ];
+
+        // QUIZ FRAGEN (Bereinigt um reine Massen-Fragen)
+        const QUIZ_QUESTIONS = [
+          {
+            id: 1,
+            type: 'single',
+            question: "Welches Boson verleiht anderen Elementarteilchen ihre Masse?",
+            options: ["Photon", "W-Boson", "Higgs-Boson", "Gluon"],
+            correctAnswer: 2,
+            explanation: "Das Higgs-Boson ist das Quant des Higgs-Feldes, dessen Wechselwirkung Teilchen ihre Ruhemasse verleiht."
+          },
+          {
+            id: 2,
+            type: 'multi',
+            question: "Welche dieser Teilchen gehören zur ersten Generation der Materie? (Mehrere Antworten möglich)",
+            options: ["Up-Quark", "Myon", "Elektron", "Strange-Quark", "Down-Quark"],
+            correctAnswers: [0, 2, 4],
+            explanation: "Die erste Generation besteht aus Up-Quark, Down-Quark, Elektron und Elektron-Neutrino."
+          },
+          {
+            id: 3,
+            type: 'single',
+            question: "Wie viele Quarks bilden ein Baryon (wie das Proton)?",
+            options: ["Zwei", "Drei", "Vier", "Sechs"],
+            correctAnswer: 1,
+            explanation: "Baryonen bestehen immer aus drei Quarks (z.B. uud für Protonen). Mesonen bestehen aus zwei (Quark-Antiquark)."
+          },
+          {
+            id: 4,
+            type: 'single',
+            question: "Welche Kraft wird durch Gluonen vermittelt?",
+            options: ["Gravitation", "Elektromagnetismus", "Schwache Kernkraft", "Starke Kernkraft"],
+            correctAnswer: 3,
+            explanation: "Gluonen vermitteln die starke Kernkraft, welche Quarks in Hadronen zusammenhält."
+          },
+          // Frage 5 (Leptonen Masse Sortierung) ENTFERNT
+          {
+            id: 6,
+            type: 'single',
+            question: "Welche elektrische Ladung trägt ein Up-Quark?",
+            options: ["+1", "-1/3", "+2/3", "0"],
+            correctAnswer: 2,
+            explanation: "Up-Quarks tragen eine Ladung von +2/3 Elementarladungen. Down-Quarks tragen -1/3."
+          },
+          {
+            id: 7,
+            type: 'single',
+            question: "Aus welchen Quarks besteht ein Neutron?",
+            options: ["uud (Up, Up, Down)", "udd (Up, Down, Down)", "sss (Strange, Strange, Strange)", "ud (Up, Down)"],
+            correctAnswer: 1,
+            explanation: "Ein Neutron besteht aus einem Up-Quark (+2/3) und zwei Down-Quarks (-1/3, -1/3), was eine Gesamtladung von 0 ergibt."
+          },
+          // Frage 8 (Massereichstes Quark) ENTFERNT
+          {
+            id: 9,
+            type: 'multi',
+            question: "Welche Teilchen unterliegen der Starken Wechselwirkung? (Mehrere Antworten möglich)",
+            options: ["Elektron", "Up-Quark", "Gluon", "Photon", "Neutrino"],
+            correctAnswers: [1, 2],
+            explanation: "Nur Quarks und Gluonen tragen Farbladung und unterliegen somit der Starken Wechselwirkung. Leptonen (Elektron, Neutrino) nicht."
+          },
+          {
+            id: 10,
+            type: 'single',
+            question: "Welche Kraft vermittelt das Photon?",
+            options: ["Starke Kernkraft", "Schwache Kernkraft", "Gravitation", "Elektromagnetismus"],
+            correctAnswer: 3,
+            explanation: "Photonen sind die Austauschteilchen der elektromagnetischen Kraft und haben selbst keine Ladung."
+          },
+          {
+            id: 11,
+            type: 'single',
+            question: "Welchen Spin haben alle Fermionen (Materieteilchen)?",
+            options: ["0", "1", "1/2", "2"],
+            correctAnswer: 2,
+            explanation: "Fermionen (Quarks und Leptonen) haben einen halbzahligen Spin (1/2), was bedeutet, dass sie dem Pauli-Prinzip unterliegen."
+          },
+          {
+            id: 12,
+            type: 'single',
+            question: "Was ist ein Meson?",
+            options: ["Ein Teilchen aus 3 Quarks", "Ein Teilchen aus Quark und Antiquark", "Ein schweres Lepton", "Ein Eichboson"],
+            correctAnswer: 1,
+            explanation: "Mesonen sind Hadronen, die aus einem Quark und einem Antiquark bestehen (z.B. Pionen)."
+          },
+          {
+            id: 13,
+            type: 'single',
+            question: "Wie viele Generationen von Elementarteilchen gibt es im Standardmodell?",
+            options: ["Zwei", "Drei", "Vier", "Unendlich viele"],
+            correctAnswer: 1,
+            explanation: "Es gibt drei Generationen (Familien), die sich in Masse, aber nicht in ihren Wechselwirkungen unterscheiden."
+          },
+          {
+            id: 14,
+            type: 'single',
+            question: "Welches geladene Lepton ist stabil?",
+            options: ["Myon", "Tauon", "Elektron", "Alle sind stabil"],
+            correctAnswer: 2,
+            explanation: "Das Elektron ist das leichteste geladene Teilchen und kann daher nicht in leichtere Teilchen zerfallen. Es ist stabil."
+          },
+          {
+            id: 15,
+            type: 'multi',
+            question: "Wofür sind die W- und Z-Bosonen verantwortlich? (Mehrere Antworten möglich)",
+            options: ["Zusammenhalt der Atomkerne", "Radioaktiver Beta-Zerfall", "Schwache Wechselwirkung", "Lichtausbreitung"],
+            correctAnswers: [1, 2],
+            explanation: "W- und Z-Bosonen vermitteln die schwache Wechselwirkung, die Prozesse wie den Beta-Zerfall und Kernfusion in der Sonne ermöglicht."
+          },
+          {
+            id: 16,
+            type: 'single',
+            question: "Was ist das Antiteilchen des Elektrons?",
+            options: ["Anti-Elektron", "Positron", "Negatron", "Proton"],
+            correctAnswer: 1,
+            explanation: "Das Antiteilchen des Elektrons heißt Positron. Es hat die gleiche Masse, aber positive Ladung."
+          },
+          // Frage 17 (Ordnung Quarks nach Masse) ENTFERNT
+          {
+            id: 18,
+            type: 'single',
+            question: "Mit welcher Kraft wechselwirken Neutrinos?",
+            options: ["Starke Kraft", "Elektromagnetismus", "Nur Schwache Kraft (und Gravitation)", "Mit allen Kräften"],
+            correctAnswer: 2,
+            explanation: "Neutrinos sind elektrisch neutral und haben keine Farbladung. Sie spüren nur die Schwache Kraft (und Gravitation)."
+          },
+          {
+            id: 19,
+            type: 'single',
+            question: "Was haben alle Eichbosonen (Photon, Gluon, W/Z) gemeinsam?",
+            options: ["Sie haben Spin 1/2", "Sie haben Spin 1 (ganzzahlig)", "Sie haben Masse", "Sie sind elektrisch geladen"],
+            correctAnswer: 1,
+            explanation: "Eichbosonen sind Kraftteilchen mit ganzzahligem Spin (meistens 1). Das Higgs ist ein Skalarboson mit Spin 0."
+          },
+          {
+            id: 20,
+            type: 'multi',
+            question: "Welche dieser Teilchen haben (nach Standardmodell) keine Ruhemasse? (Mehrere Antworten möglich)",
+            options: ["Elektron", "Photon", "Gluon", "Z-Boson", "Up-Quark"],
+            correctAnswers: [1, 2],
+            explanation: "Photonen und Gluonen sind masselos. Z-Bosonen, Elektronen und Quarks besitzen Masse."
+          }
+        ];
+
+        // --- COMPONENTS ---
+
+        // ParticleCard
+        const ParticleCard = ({ particle, onClick, compact }) => {
+            const getTypeLabel = (type) => {
+                switch(type) {
+                case 'quark': return 'Quark';
+                case 'lepton': return 'Lepton';
+                case 'boson': return 'Eichboson';
+                case 'higgs': return 'Skalarboson';
+                default: return type;
+                }
+            };
+
+            const getColors = (type) => {
+                switch(type) {
+                case 'quark': return { border: 'border-purple-300', bg: 'bg-white', circle: 'bg-purple-500', text: 'text-purple-600', shadow: 'shadow-purple-50' };
+                case 'lepton': return { border: 'border-green-300', bg: 'bg-white', circle: 'bg-green-500', text: 'text-green-600', shadow: 'shadow-green-50' };
+                case 'boson': return { border: 'border-red-300', bg: 'bg-white', circle: 'bg-red-500', text: 'text-red-600', shadow: 'shadow-red-50' };
+                case 'higgs': return { border: 'border-amber-200', bg: 'bg-white', circle: 'bg-amber-400', text: 'text-amber-600', shadow: 'shadow-amber-50' };
+                default: return { border: 'border-gray-200', bg: 'bg-white', circle: 'bg-gray-500', text: 'text-gray-600', shadow: 'shadow-gray-50' };
+                }
+            };
+
+            const colors = getColors(particle.type);
+
+            const getCompactMass = (massString) => {
+                const trimmed = massString.trim();
+                if (trimmed.startsWith('<')) {
+                    const parts = trimmed.split(' ');
+                    if (parts.length >= 2) return `${parts[0]}${parts[1]}`;
+                }
+                return trimmed.split(' ')[0];
+            };
+
+            const getCompactUnit = (massString) => {
+                const parts = massString.trim().split(' ');
+                if (massString.includes('<') && parts.length >= 3) return parts[2];
+                if (parts.length >= 2) return parts[1];
+                return '';
+            };
+
+            if (compact) {
+                return (
+                <button 
+                    onClick={() => onClick?.(particle)}
+                    className={`relative w-full aspect-square min-w-[90px] max-w-[110px] flex flex-col items-center p-1.5 rounded-xl border-[2px] ${colors.border} ${colors.bg} ${colors.shadow} shadow-sm hover:shadow-md hover:scale-[1.02] transition-all active:scale-95 group overflow-hidden`}
+                >
+                    <div className="absolute top-1 left-1.5 flex flex-col items-start leading-none z-10 text-left">
+                        {/* Kombinierte Masse und Einheit */}
+                        <div className="flex items-baseline gap-0.5 mb-0.5">
+                            <span className="font-bold text-gray-500 text-[7px] sm:text-[8px]">{getCompactMass(particle.mass)}</span>
+                            <span className="font-normal text-gray-400 text-[6px]">{getCompactUnit(particle.mass)}</span>
+                        </div>
+                        
+                        <div className="flex flex-col text-[7px] sm:text-[8px] font-mono text-gray-400">
+                            <span className="flex items-center gap-0.5"><span className="opacity-40">q</span><span className="text-gray-600 font-bold">{particle.charge}</span></span>
+                            <span className="flex items-center gap-0.5"><span className="opacity-40">s</span><span className="text-gray-600 font-bold">{particle.spin}</span></span>
+                        </div>
+                    </div>
+
+                    <div className="flex-grow flex items-center justify-center w-full mt-1">
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center ${colors.circle} text-white shadow-sm relative z-0 transform group-hover:scale-105 transition-transform`}>
+                        <span className="text-lg sm:text-xl font-black">{particle.symbol}</span>
+                    </div>
+                    </div>
+
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter text-gray-700 leading-none pb-0.5">{particle.name}</span>
+                </button>
+                );
+            }
+
+            return (
+                <div className={`bg-gray-900 border-4 ${colors.border} p-5 rounded-3xl shadow-2xl flex flex-col relative overflow-hidden text-left h-full`}>
+                <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-10 blur-3xl ${colors.circle}`}></div>
+                
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                    <div>
+                    <h3 className="text-2xl font-black text-white leading-none">{particle.name}</h3>
+                    <span className={`text-[8px] font-black uppercase tracking-[0.2em] ${colors.text.replace('600', '400')}`}>
+                        {getTypeLabel(particle.type)}
+                    </span>
+                    </div>
+                    <div className={`text-5xl font-mono font-black ${colors.text.replace('600', '400')}`}>
+                    {particle.symbol}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-4 relative z-10 text-[10px]">
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/10">
+                    <p className="text-gray-500 uppercase font-black tracking-widest mb-0.5">Masse</p>
+                    <p className="font-mono text-gray-100 font-bold">{particle.mass}</p>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-xl border border-white/10">
+                    <p className="text-gray-500 uppercase font-black tracking-widest mb-0.5">Ladung</p>
+                    <p className="font-mono text-gray-100 font-bold">{particle.charge}</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4 flex-grow relative z-10">
+                    <div className="p-3 bg-gray-950 rounded-xl border border-white/5">
+                    <h4 className="text-[9px] uppercase font-black tracking-widest text-blue-400 mb-1">Physikalischer Hintergrund</h4>
+                    <p className="text-gray-400 text-xs leading-relaxed">{particle.description}</p>
+                    </div>
+                    <div className="px-1">
+                    <h4 className="text-[9px] uppercase font-black tracking-widest text-green-400 mb-1">Rolle im Standardmodell</h4>
+                    <p className="text-gray-200 text-xs leading-relaxed font-bold italic">"{particle.role}"</p>
+                    </div>
+                </div>
+                </div>
+            );
+        };
+
+        // Quiz Component
+        const Quiz = () => {
+            const [questions, setQuestions] = useState(QUIZ_QUESTIONS);
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [selectedOptions, setSelectedOptions] = useState([]);
+            const [orderedItems, setOrderedItems] = useState([]);
+
+            const [isAnswered, setIsAnswered] = useState(false);
+            const [incorrectlyAnsweredIds, setIncorrectlyAnsweredIds] = useState([]);
+
+            const initializeQuestionState = (index, currentQuestions) => {
+                const q = currentQuestions[index];
+                setSelectedOption(null);
+                setSelectedOptions([]);
+                setIsAnswered(false);
+                if (q?.type === 'order') {
+                setOrderedItems([...q.options]);
+                } else {
+                setOrderedItems([]);
+                }
+            };
+
+            useEffect(() => {
+                initializeQuestionState(0, questions);
+            }, []);
+
+            const question = questions[currentQuestion];
+            const qType = question?.type || 'single';
+
+            const handleSingleSelect = (index) => {
+                if (isAnswered) return;
+                setSelectedOption(index);
+                checkAnswer(index);
+            };
+
+            const handleMultiSelect = (index) => {
+                if (isAnswered) return;
+                if (selectedOptions.includes(index)) {
+                setSelectedOptions(selectedOptions.filter(i => i !== index));
+                } else {
+                setSelectedOptions([...selectedOptions, index]);
+                }
+            };
+
+            const handleMoveItem = (index, direction) => {
+                if (isAnswered) return;
+                const newOrder = [...orderedItems];
+                const targetIndex = index + direction;
+                if (targetIndex >= 0 && targetIndex < newOrder.length) {
+                [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
+                setOrderedItems(newOrder);
+                }
+            };
+
+            const checkAnswer = (manualSelection) => {
+                let isCorrect = false;
+                
+                if (qType === 'single') {
+                const selection = manualSelection !== undefined ? manualSelection : selectedOption;
+                isCorrect = selection === question.correctAnswer;
+                } else if (qType === 'multi') {
+                const correctSet = new Set(question.correctAnswers || []);
+                const selectedSet = new Set(selectedOptions);
+                isCorrect = correctSet.size === selectedSet.size && 
+                            [...correctSet].every(value => selectedSet.has(value));
+                } else if (qType === 'order') {
+                isCorrect = JSON.stringify(orderedItems) === JSON.stringify(question.correctOrder);
+                }
+
+                setIsAnswered(true);
+                if (isCorrect) {
+                    setScore(s => s + 1);
+                } else {
+                    setIncorrectlyAnsweredIds(prev => {
+                        if (!prev.includes(question.id)) {
+                            return [...prev, question.id];
+                        }
+                        return prev;
+                    });
+                }
+            };
+
+            const handleNext = () => {
+                const nextQuestion = currentQuestion + 1;
+                if (nextQuestion < questions.length) {
+                initializeQuestionState(nextQuestion, questions);
+                setCurrentQuestion(nextQuestion);
+                } else {
+                setShowResult(true);
+                }
+            };
+
+            const restartQuiz = () => {
+                setQuestions(QUIZ_QUESTIONS);
+                setIncorrectlyAnsweredIds([]);
+                setCurrentQuestion(0);
+                setScore(0);
+                setShowResult(false);
+                initializeQuestionState(0, QUIZ_QUESTIONS);
+            };
+
+            const retryWrongQuestions = () => {
+                const wrongQuestions = QUIZ_QUESTIONS.filter(q => incorrectlyAnsweredIds.includes(q.id));
+                setQuestions(wrongQuestions);
+                setIncorrectlyAnsweredIds([]);
+                setCurrentQuestion(0);
+                setScore(0);
+                setShowResult(false);
+                initializeQuestionState(0, wrongQuestions);
+            };
+
+            if (showResult) {
+                const percentage = Math.round((score / questions.length) * 100);
+                const hasWrongAnswers = incorrectlyAnsweredIds.length > 0;
+
+                return (
+                <div className="max-w-xl mx-auto text-center py-12 animate-in fade-in duration-500">
+                    <h2 className="text-4xl font-bold mb-4">Quiz beendet!</h2>
+                    <p className="text-xl text-gray-400 mb-8">
+                        Du hast {score} von {questions.length} Fragen richtig beantwortet ({percentage}%).
+                    </p>
+                    
+                    <div className="mb-10 p-4 bg-gray-900 rounded-2xl border border-gray-800">
+                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div className={`h-full ${percentage === 100 ? 'bg-green-500' : 'bg-blue-500'}`} style={{width: `${percentage}%`}}></div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-4 justify-center items-center">
+                        {hasWrongAnswers && (
+                            <button 
+                                onClick={retryWrongQuestions} 
+                                className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-12 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                Falsche Fragen wiederholen ({incorrectlyAnsweredIds.length})
+                            </button>
+                        )}
+                        
+                        <button 
+                            onClick={restartQuiz} 
+                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-xl shadow-lg transition-all active:scale-95"
+                        >
+                            Quiz komplett neu starten
+                        </button>
+                    </div>
+                </div>
+                );
+            }
+
+            if (!question) return null;
+
+            return (
+                <div className="max-w-2xl mx-auto py-8">
+                <div className="flex justify-between items-center mb-8 text-gray-500 uppercase text-[10px] font-black tracking-[0.2em]">
+                    <span>Frage {currentQuestion + 1} von {questions.length}</span>
+                    <div className="flex gap-1">
+                        {questions.map((_, i) => (
+                            <div key={i} className={`w-2 h-2 rounded-full ${i === currentQuestion ? 'bg-blue-500' : i < currentQuestion ? 'bg-gray-700' : 'bg-gray-800'}`}></div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mb-10">
+                    <span className="inline-block px-2 py-1 bg-blue-900/30 text-blue-400 text-[10px] font-bold rounded mb-3 uppercase tracking-widest">
+                        {qType === 'multi' ? 'Mehrfachauswahl' : qType === 'order' ? 'Reihenfolge' : 'Einzelauswahl'}
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-bold leading-tight">{question.question}</h2>
+                </div>
+
+                <div className="grid gap-3 mb-8">
+                    {question.options.map((option, index) => {
+                    const isSelected = qType === 'multi' ? selectedOptions.includes(index) : selectedOption === index;
+                    const isCorrect = qType === 'single' ? index === question.correctAnswer : question.correctAnswers?.includes(index);
+                    
+                    let stateClass = "border-gray-700 bg-gray-900 hover:border-gray-600";
+                    let statusLabel = null;
+
+                    if (isAnswered) {
+                        if (isCorrect) {
+                        if (isSelected) {
+                            stateClass = "border-green-500 bg-green-500/10 text-green-400";
+                            statusLabel = <span className="text-[10px] uppercase font-black bg-green-500/20 px-2 py-0.5 rounded ml-auto">Korrekt</span>;
+                        } else {
+                            stateClass = "border-yellow-500 bg-yellow-500/5 text-yellow-400 border-dashed";
+                            statusLabel = <span className="text-[10px] uppercase font-black bg-yellow-500/20 px-2 py-0.5 rounded ml-auto">Fehlt</span>;
+                        }
+                        } else if (isSelected) {
+                        stateClass = "border-red-500 bg-red-500/10 text-red-400";
+                        statusLabel = <span className="text-[10px] uppercase font-black bg-red-500/20 px-2 py-0.5 rounded ml-auto">Falsch</span>;
+                        } else {
+                        stateClass = "opacity-30 border-gray-800";
+                        }
+                    } else if (isSelected) {
+                        stateClass = "border-blue-500 bg-blue-500/10 ring-1 ring-blue-500";
+                    }
+
+                    return (
+                        <button
+                        key={index}
+                        disabled={isAnswered}
+                        onClick={() => qType === 'multi' ? handleMultiSelect(index) : handleSingleSelect(index)}
+                        className={`p-4 text-left border rounded-xl flex items-center gap-4 transition-all ${stateClass}`}
+                        >
+                        <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-600'}`}>
+                            {isSelected && (
+                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
+                            )}
+                        </div>
+                        <span className="flex-grow font-medium">{option}</span>
+                        {statusLabel}
+                        </button>
+                    );
+                    })}
+                </div>
+
+                {qType === 'order' && !isAnswered && (
+                    <div className="mb-8 flex gap-2 justify-center">
+                        {orderedItems.map((item, index) => (
+                            <div key={index} className="flex flex-col items-center gap-2">
+                                <div className="p-3 bg-gray-800 rounded-lg border border-gray-700 min-w-[100px] text-center text-sm font-bold">
+                                    {item}
+                                </div>
+                                <div className="flex gap-1">
+                                    <button 
+                                        disabled={index === 0}
+                                        onClick={() => handleMoveItem(index, -1)}
+                                        className="p-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-30"
+                                    >
+                                        ←
+                                    </button>
+                                    <button 
+                                        disabled={index === orderedItems.length - 1}
+                                        onClick={() => handleMoveItem(index, 1)}
+                                        className="p-1 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-30"
+                                    >
+                                        →
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {qType === 'order' && !isAnswered && (
+                    <button 
+                        onClick={() => checkAnswer()} 
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98]"
+                    >
+                        Reihenfolge prüfen
+                    </button>
+                )}
+
+                {!isAnswered && qType === 'multi' && (
+                    <button 
+                        onClick={() => checkAnswer()} 
+                        disabled={selectedOptions.length === 0}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98]"
+                    >
+                        Antworten prüfen
+                    </button>
+                )}
+
+                {isAnswered && (
+                    <div className="p-6 bg-gray-900 border border-gray-800 rounded-2xl animate-in fade-in slide-in-from-bottom-2">
+                    <div className="mb-6">
+                        <h4 className="text-blue-400 font-black uppercase text-xs tracking-widest mb-2">Erklärung</h4>
+                        <p className="text-sm text-gray-300 leading-relaxed italic">"{question.explanation}"</p>
+                    </div>
+                    <button 
+                        onClick={handleNext} 
+                        className="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-all shadow-lg active:scale-[0.98]"
+                    >
+                        {currentQuestion + 1 === questions.length ? "Ergebnis anzeigen" : "Nächste Frage"}
+                    </button>
+                    </div>
+                )}
+                </div>
+            );
+        };
+
+        // ModelGrid Component
+        const ModelGrid = () => {
+            const [selectedParticle, setSelectedParticle] = useState(null);
+
+            const getP = (id) => PARTICLES.find(p => p.id === id);
+
+            return (
+                <div className="py-4 max-w-[1100px] mx-auto px-2 select-none">
+                <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
+                    
+                    <div className="w-full overflow-x-auto pb-4 custom-scrollbar flex justify-center">
+                    <div className="bg-white rounded-2xl p-4 shadow-2xl border border-gray-200 inline-block">
+                        
+                        <div className="grid grid-cols-[30px_repeat(3,minmax(100px,1fr))_minmax(100px,1fr)_minmax(100px,1fr)] gap-1 mb-1">
+                        <div className="col-start-2 col-span-3 text-center py-1 bg-blue-50 rounded-t-lg border-x border-t border-blue-100">
+                            <span className="text-[9px] font-black text-blue-800 uppercase tracking-tighter">Fermionen (Materie)</span>
+                        </div>
+                        <div className="col-start-5 col-span-2 text-center py-1 bg-red-50 rounded-t-lg border-x border-t border-red-100">
+                            <span className="text-[9px] font-black text-red-800 uppercase tracking-tighter">Bosonen (Kräfte)</span>
+                        </div>
+                        
+                        <div className="col-start-1"></div>
+                        <div className="text-center text-gray-400 font-serif italic text-sm">I</div>
+                        <div className="text-center text-gray-400 font-serif italic text-sm">II</div>
+                        <div className="text-center text-gray-400 font-serif italic text-sm">III</div>
+                        <div className="col-span-2"></div>
+                        </div>
+
+                        <div className="grid grid-cols-[30px_repeat(3,minmax(100px,1fr))_minmax(100px,1fr)_minmax(100px,1fr)] gap-1.5">
+                        
+                        <div className="row-start-1 row-span-2 flex items-center justify-center">
+                            <div className="-rotate-90 whitespace-nowrap uppercase tracking-widest text-purple-600 font-black text-[10px] w-full text-center">
+                            Quarks
+                            </div>
+                        </div>
+
+                        <div className="row-start-1 col-start-2"><ParticleCard particle={getP('up')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-1 col-start-3"><ParticleCard particle={getP('charm')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-1 col-start-4"><ParticleCard particle={getP('top')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-1 col-start-5"><ParticleCard particle={getP('gluon')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-1 col-start-6"><ParticleCard particle={getP('higgs')} compact onClick={setSelectedParticle} /></div>
+
+                        <div className="row-start-2 col-start-2"><ParticleCard particle={getP('down')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-2 col-start-3"><ParticleCard particle={getP('strange')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-2 col-start-4"><ParticleCard particle={getP('bottom')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-2 col-start-5"><ParticleCard particle={getP('photon')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-2 col-start-6 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center">
+                            <span className="text-[8px] text-gray-300 font-bold uppercase rotate-45">Skalar</span>
+                        </div>
+
+                        <div className="row-start-3 row-span-2 flex items-center justify-center">
+                            <div className="-rotate-90 whitespace-nowrap uppercase tracking-widest text-green-600 font-black text-[10px] w-full text-center">
+                            Leptonen
+                            </div>
+                        </div>
+
+                        <div className="row-start-3 col-start-2"><ParticleCard particle={getP('electron')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-3 col-start-3"><ParticleCard particle={getP('muon')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-3 col-start-4"><ParticleCard particle={getP('tau')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-3 col-start-5"><ParticleCard particle={getP('z-boson')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-3 col-start-6 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center">
+                            <span className="text-[8px] text-gray-300 font-bold uppercase rotate-45">Vektor</span>
+                        </div>
+
+                        <div className="row-start-4 col-start-2"><ParticleCard particle={getP('electron-neutrino')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-4 col-start-3"><ParticleCard particle={getP('muon-neutrino')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-4 col-start-4"><ParticleCard particle={getP('tau-neutrino')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-4 col-start-5"><ParticleCard particle={getP('w-boson')} compact onClick={setSelectedParticle} /></div>
+                        <div className="row-start-4 col-start-6 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center">
+                            <span className="text-[8px] text-gray-300 font-bold uppercase rotate-45">Eich</span>
+                        </div>
+
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-x-6 gap-y-2 justify-center">
+                            <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div><span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Oben links: Masse</span></div>
+                            <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div><span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">q: Ladung</span></div>
+                            <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div><span className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">s: Spin</span></div>
+                            <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div><span className="text-[8px] font-bold text-blue-500 uppercase tracking-tighter">Unten rechts: Einheit</span></div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div className="w-full lg:w-[320px] shrink-0">
+                    {selectedParticle ? (
+                        <div className="animate-in fade-in zoom-in duration-200">
+                        <ParticleCard particle={selectedParticle} />
+                        <button 
+                            onClick={() => setSelectedParticle(null)}
+                            className="mt-4 w-full py-3 text-[10px] font-black text-gray-400 hover:text-white uppercase tracking-widest border border-gray-800 rounded-xl hover:bg-gray-900 transition-all active:scale-[0.98]"
+                        >
+                            Auswahl aufheben
+                        </button>
+                        </div>
+                    ) : (
+                        <div className="h-full min-h-[400px] border border-gray-800/50 rounded-3xl flex flex-col items-center justify-center p-8 text-center bg-gray-900/10">
+                        <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center mb-6">
+                            <svg className="w-8 h-8 text-blue-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-widest">Detail-Ansicht</h4>
+                        <p className="text-xs text-gray-600 leading-relaxed max-w-[180px]">Wähle ein Teilchen im Tableau aus, um die Quantenzahlen und physikalischen Rollen zu erkunden.</p>
+                        </div>
+                    )}
+                    </div>
+                </div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [currentView, setCurrentView] = useState('intro');
+
+            const NavItem = ({ view, label }) => (
+                <button
+                onClick={() => setCurrentView(view)}
+                className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                    currentView === view 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
+                >
+                {label}
+                </button>
+            );
+
+            const ExplanationCard = ({ title, color, children }) => (
+                <div className={`bg-gray-900/50 p-6 rounded-2xl border ${color} shadow-inner h-full`}>
+                <h3 className={`text-xl font-black mb-3 ${color.replace('border', 'text').replace('-500/20', '-400')}`}>{title}</h3>
+                <div className="text-gray-400 text-sm leading-relaxed space-y-3">{children}</div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen flex flex-col bg-gray-950 text-gray-100 relative">
+                {/* Header */}
+                <header className="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-md border-b border-gray-800">
+                    <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('intro')}>
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">μ</div>
+                        <h1 className="text-xl font-bold tracking-tight">Teilchen-<span className="text-blue-500">Akademie</span></h1>
+                    </div>
+                    <nav className="hidden md:flex items-center gap-2">
+                        <NavItem view="model" label="Das Modell" />
+                        <NavItem view="quiz" label="Quiz" />
+                    </nav>
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <main className="flex-grow max-w-6xl mx-auto px-4 w-full pb-20">
+                    <div className={currentView === 'intro' ? '' : 'hidden'}>
+                    <div className="py-20 text-center">
+                        <h2 className="text-5xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 bg-clip-text text-transparent leading-tight">
+                        Die Bausteine der <br /> Wirklichkeit.
+                        </h2>
+                        <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                        Willkommen in der kleinsten Dimension. Erfahre, wie aus winzigen Quantenfeldern unsere gesamte Welt entsteht.
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-4">
+                        <button 
+                            onClick={() => setCurrentView('model')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-xl shadow-blue-900/30 active:scale-95"
+                        >
+                            Studium beginnen
+                        </button>
+                        <button 
+                            onClick={() => setCurrentView('quiz')}
+                            className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-2xl transition-all active:scale-95 border border-gray-700"
+                        >
+                            Wissen testen
+                        </button>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div className={currentView === 'model' ? '' : 'hidden'}>
+                    <div className="py-12 space-y-16">
+                        <section>
+                        <div className="mb-8 text-center">
+                            <h2 className="text-3xl font-bold mb-2">Das Standardmodell im Überblick</h2>
+                            <p className="text-gray-400 italic max-w-3xl mx-auto">
+                            Alle fundamentalen Teilchen und ihre Wechselwirkungen in einer einzigen, interaktiven Ansicht. Klicke auf ein Teilchen, um seine Details zu enthüllen.
+                            </p>
+                        </div>
+                        <ModelGrid />
+                        </section>
+                        
+                        <section>
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl font-bold mb-2">Die Teilchen-Familien & Kräfte</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto">Jedes Teilchen gehört zu einer Gruppe mit spezifischen Eigenschaften. Eichbosonen sind dabei die Boten der Naturkräfte.</p>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                            <ExplanationCard title="Quarks: Gebundene Bausteine" color="border-purple-500/20">
+                            <p>Quarks sind die fundamentalen Bausteine der Materie, aus der Atomkerne bestehen. Ihre einzigartige Eigenschaft ist, dass sie die <strong>starke Kernkraft</strong> spüren. Diese Kraft ist so immens, dass Quarks niemals isoliert, sondern immer in Gruppen gebunden vorkommen – ein Phänomen namens <strong>Confinement</strong>.</p>
+                            <p>Sie kombinieren sich zu Teilchen, die man <strong>Hadronen</strong> nennt. Die bekanntesten sind <strong>Baryonen</strong> (aus 3 Quarks), wie das Proton (Up, Up, Down) und das Neutron (Up, Down, Down), sowie <strong>Mesonen</strong> (aus 1 Quark und 1 Antiquark).</p>
+                            </ExplanationCard>
+                            <ExplanationCard title="Leptonen: Freie Einzelgänger" color="border-green-500/20">
+                            <p>Leptonen sind die zweite Klasse von Materieteilchen. Im Gegensatz zu Quarks spüren sie die starke Kernkraft nicht und können daher als freie, einzelne Teilchen existieren. Das bekannteste Lepton ist das <strong>Elektron</strong>, das die Hülle von Atomen bildet und für Elektrizität verantwortlich ist.</p>
+                            <p>Es gibt drei Generationen von Leptonen, wobei jede ein schwereres, instabiles, geladenes Teilchen (Myon, Tauon) und ein fast masseloses, elektrisch neutrales <strong>Neutrino</strong> enthält. Neutrinos interagieren extrem schwach und durchdringen Materie fast ungehindert.</p>
+                            </ExplanationCard>
+                            <ExplanationCard title="Eichbosonen: Die 3 Kräfte" color="border-red-500/20">
+                            <p>Diese Teilchen sind keine Materie, sondern die Vermittler der Naturkräfte (außer Gravitation). Man nennt sie "Botenteilchen".</p>
+                            <ul className="list-disc list-inside mt-2 space-y-2">
+                                <li><strong>Starke Kernkraft (Gluonen):</strong> Die stärkste Kraft im Universum. Sie "klebt" Quarks zusammen, um Protonen und Neutronen zu bilden. Ihre Reichweite ist winzig (nur im Atomkern).</li>
+                                <li><strong>Elektromagnetismus (Photonen):</strong> Verantwortlich für Licht, Elektrizität und den Zusammenhalt von Atomen (Elektronenhülle am Kern). Hat unendliche Reichweite.</li>
+                                <li><strong>Schwache Kernkraft (W- & Z-Bosonen):</strong> Verantwortlich für den radioaktiven Zerfall und Kernfusion in der Sonne. Sie kann als einzige Kraft die Teilchenart (den "Flavor") ändern.</li>
+                            </ul>
+                            </ExplanationCard>
+                            <div className="flex flex-col gap-6">
+                                <ExplanationCard title="Skalarboson: Der Massen-Geber" color="border-amber-500/20">
+                                <p>Diese Familie hat derzeit nur ein einziges bestätigtes Mitglied: das <strong>Higgs-Boson</strong>. Es ist einzigartig, weil es einen Spin von 0 hat. Es ist kein klassisches Kraftteilchen, sondern die sichtbare Anregung des unsichtbaren, allgegenwärtigen <strong>Higgs-Feldes</strong>.</p>
+                                <p>Der Mechanismus ist elegant: Elementarteilchen erhalten ihre Masse nicht von sich aus, sondern durch ihre Interaktion mit diesem Feld.</p>
+                                </ExplanationCard>
+                                <div className="bg-gray-900/30 p-4 rounded-xl border border-gray-800 border-dashed">
+                                    <h4 className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">Hinweis zur Gravitation</h4>
+                                    <p className="text-gray-400 text-xs">Die Schwerkraft ist <strong>nicht</strong> Teil des Standardmodells. Ein hypothetisches Boson, das "Graviton", wurde bisher nicht gefunden.</p>
+                                </div>
+                            </div>
+                            <div className="md:col-span-2">
+                            <ExplanationCard title="Antimaterie: Das Spiegelbild" color="border-pink-500/20">
+                                <p>Für jedes Teilchen im Standardmodell gibt es ein entsprechendes <strong>Antiteilchen</strong>. Diese besitzen exakt dieselbe Masse wie ihre Gegenstücke, tragen aber die entgegengesetzte elektrische Ladung (und andere Quantenzahlen).</p>
+                                <p>Das Antiteilchen des Elektrons ist beispielsweise das <strong>Positron</strong> (positive Ladung), und Quarks haben Antiquarks. Wenn Materie und Antimaterie aufeinandertreffen, löschen sie sich gegenseitig vollständig aus (Annihilation) und wandeln ihre Masse gemäß Einsteins Formel E=mc² in reine Energie um.</p>
+                            </ExplanationCard>
+                            </div>
+                        </div>
+                        </section>
+                    </div>
+                    </div>
+
+                    <div className={currentView === 'quiz' ? '' : 'hidden'}>
+                    <Quiz />
+                    </div>
+                </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
